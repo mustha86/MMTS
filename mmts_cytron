@@ -1,0 +1,65 @@
+/*
+ * Control DC motor with Smartphone via bluetooth
+ * created by Musthafa K, Felicitous Solutions
+*/
+#include <Cytron_SmartDriveDuo.h>
+#define IN1 4 // Arduino pin 4 is connected to MDDS30 pin IN1.
+#define AN1 5 // Arduino pin 5 is connected to MDDS30 pin AN1.
+#define AN2 6 // Arduino pin 6 is connected to MDDS30 pin AN2.
+#define IN2 7 // Arduino pin 7 is connected to MDDS30 pin IN2.
+const int limitSwitch1 = 2;
+const int limitSwitch2 = 3;
+int motorpwm = 9;  // motorpwm connected to digital pin 9
+int limit1State = 0;
+int limit2State = 0;
+char inChar;
+signed int speedLeft, speedRight;
+int stopflag = 0;
+int ir1count = 0;
+Cytron_SmartDriveDuo smartDriveDuo30(PWM_INDEPENDENT, IN1, IN2, AN1, AN2);
+void setup() {
+
+  pinMode(limit1State, INPUT);
+  pinMode(limit2State, INPUT);
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+}
+
+void loop() {
+  //if some date is sent, reads it and saves in state
+  if (Serial.available() > 0) {
+    inChar = (char)Serial.read();
+    
+  }
+  // if the state is '0' the DC motor will turn off
+  if (inChar == '0') {
+    Serial.println("Motor: Start");
+    delay(1000);
+    inChar = 'S';
+    ir1count = 0;
+    stopflag = 0;
+    speedLeft = 40;
+    smartDriveDuo30.control(speedLeft, speedRight);
+    delay(500);
+  }
+  if (!stopflag) {
+    // read the state of the IR value:
+    limit1State = digitalRead(limitSwitch1);
+    limit2State = digitalRead(limitSwitch2);
+    // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
+    if (limit1State == HIGH) {
+      speedLeft = -40;
+      smartDriveDuo30.control(speedLeft, speedRight);
+    }
+    if (limit2State == HIGH && ir1count == 0) {
+  
+      speedLeft = 40;
+      smartDriveDuo30.control(speedLeft, speedRight);
+    }
+    if (limit2State == HIGH && ir1count == 1) {
+      speedLeft = 0;
+      smartDriveDuo30.control(speedLeft, speedRight);
+      stopflag = 1;
+    }
+  }
+}
