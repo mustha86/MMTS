@@ -34,7 +34,6 @@ void loop() {
   // if the state is '0' the DC motor will turn off
   if (inChar == '0') {
     Serial.println("Motor: Start");
-    delay(1000);
     inChar = 'S';
     ir1count = 0;
     stopflag = 0;
@@ -46,20 +45,35 @@ void loop() {
     // read the state of the IR value:
     limit1State = digitalRead(limitSwitch1);
     limit2State = digitalRead(limitSwitch2);
-    // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
-    if (limit1State == HIGH) {
+    // check if the IR2 is Detected. If it is, the IR is HIGH:
+    if (limit1State == LOW) {
+      Serial.println("Motor: Stop In IR2");
+      speedLeft = 0;
+      smartDriveDuo30.control(speedLeft, speedRight);
+      delay(100);
+      Serial.println("Motor: Start IR2");
       speedLeft = -40;
       smartDriveDuo30.control(speedLeft, speedRight);
+      delay(500);
     }
-    if (limit2State == HIGH && ir1count == 0) {
-  
+    if (limit2State == LOW && ir1count == 0) {
+      Serial.println("Motor: Stop In IR1");
+      speedLeft = 0;
+      smartDriveDuo30.control(speedLeft, speedRight);
+      ir1count++;
+      Serial.println("Motor: Start IR1");
       speedLeft = 40;
       smartDriveDuo30.control(speedLeft, speedRight);
+      delay(500);
     }
-    if (limit2State == HIGH && ir1count == 1) {
+    if (limit2State == LOW && ir1count == 1) {
+      ir1count=0;
+      Serial.println("Motor: Stop Home Position");
       speedLeft = 0;
       smartDriveDuo30.control(speedLeft, speedRight);
       stopflag = 1;
     }
   }
 }
+
+
